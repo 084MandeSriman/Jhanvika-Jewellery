@@ -1,0 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background-color: #FBF6EC;
+  color: #20140f;
+  font-family: 'Jost', sans-serif;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: #C9982F;
+  color: #fff;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #F3EAD8;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #e9c363, #a97722);
+  border-radius: 10px;
+}
+
+@layer utilities {
+  .font-display {
+    font-family: 'Cormorant Garamond', serif;
+  }
+  .font-script {
+    font-family: 'Tangerine', cursive;
+  }
+  .text-gradient-gold {
+    background: linear-gradient(120deg, #f3dd9c, #c9982f 40%, #eac873 60%, #8f5f1c);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: shimmer 4s linear infinite;
+  }
+  .bg-noise {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  }
+  .card-shine {
+    position: relative;
+    overflow: hidden;
+  }
+  .card-shine::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -75%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(120deg, transparent, rgba(255,255,255,0.5), transparent);
+    transform: skewX(-20deg);
+    transition: left 0.9s ease;
+  }
+  .card-shine:hover::after {
+    left: 125%;
+  }
+  .divider-diamond {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+  }
+  .divider-diamond::before,
+  .divider-diamond::after {
+    content: "";
+    height: 1px;
+    width: 48px;
+    background: linear-gradient(90deg, transparent, #c9982f, transparent);
+  }
+}
+
+/* Page transition helper */
+.page-fade-enter {
+  opacity: 0;
+  transform: translateY(12px);
+}
+.page-fade-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 400ms ease, transform 400ms ease;
+}
