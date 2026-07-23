@@ -9,6 +9,7 @@ import ProductCard from "../components/ProductCard";
 import Testimonials from "../components/Testimonials";
 import Newsletter from "../components/Newsletter";
 import SectionHeading from "../components/SectionHeading";
+import BudgetSection from "../components/BudgetSection";
 import { useProducts } from "../hooks/useCatalogue";
 
 export default function Home() {
@@ -49,8 +50,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Craftsmanship story / signature section */}
-      <section className="relative bg-emerald-900 overflow-hidden py-20 md:py-28">
+      <BudgetSection />
+
+      {/* Craftsmanship story / signature section
         <div className="absolute inset-0 bg-noise opacity-25 pointer-events-none" />
         <div className="max-w-7xl mx-auto px-6 md:px-10 grid md:grid-cols-2 gap-14 items-center relative">
           <motion.div
@@ -98,7 +100,7 @@ export default function Home() {
             <span className="absolute font-script text-7xl md:text-8xl text-gold-300">J</span>
           </motion.div>
         </div>
-      </section>
+      </section> */}
 
       {/* New arrivals */}
       {newArrivals.length > 0 && (

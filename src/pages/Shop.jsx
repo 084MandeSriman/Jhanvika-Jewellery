@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,11 +19,18 @@ export default function Shop() {
   const { categoryId } = useParams();
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("search") || "";
+  const urlMaxPrice = Number(searchParams.get("maxPrice"));
 
   const [activeThemes, setActiveThemes] = useState([]);
   const [sort, setSort] = useState("featured");
-  const [maxPrice, setMaxPrice] = useState(35000);
+  const [maxPrice, setMaxPrice] = useState(Number.isFinite(urlMaxPrice) && urlMaxPrice > 0 ? urlMaxPrice : 35000);
   const [filtersOpen, setFiltersOpen] = useState(false);
+
+  useEffect(() => {
+    if (Number.isFinite(urlMaxPrice) && urlMaxPrice > 0) {
+      setMaxPrice(urlMaxPrice);
+    }
+  }, [urlMaxPrice]);
 
   const { categories } = useCategories();
   const category = categories.find((c) => c.id === categoryId);
