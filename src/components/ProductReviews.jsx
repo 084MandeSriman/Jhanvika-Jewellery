@@ -4,7 +4,7 @@ import { Star, User, Pencil, Trash2 } from "lucide-react";
 import { ReviewAPI } from "../api/services";
 import { useAuth } from "../context/AuthContext";
 
-export default function ProductReviews({ productId }) {
+export default function ProductReviews({ productId, compact = false }) {
   const { isAuthenticated, user } = useAuth();
   const [data, setData] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -47,10 +47,10 @@ export default function ProductReviews({ productId }) {
   const myReview = reviews.find((r) => r.userName === user?.name);
 
   return (
-    <div className="mt-16">
-      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+    <div className={`${compact ? "mt-6 pt-4 border-t border-gold-200/60" : "mt-16"}`}>
+      <div className={`flex items-center justify-between flex-wrap gap-3 ${compact ? "mb-3" : "mb-6"}`}>
         <div>
-          <h3 className="font-display text-2xl text-maroon-900">Customer Reviews</h3>
+          <h3 className={`font-display text-maroon-900 ${compact ? "text-xl" : "text-2xl"}`}>Customer Reviews</h3>
           {summary.total > 0 && (
             <div className="flex items-center gap-2 mt-1">
               <div className="flex">
@@ -63,7 +63,7 @@ export default function ProductReviews({ productId }) {
           )}
         </div>
         {isAuthenticated && !myReview && (
-          <button onClick={() => setShowForm(true)} className="text-sm font-body px-5 py-2.5 rounded-full bg-maroon-900 text-ivory hover:bg-gold-600 hover:text-maroon-950 transition-colors">
+          <button onClick={() => setShowForm(true)} className={`text-sm font-body rounded-full bg-maroon-900 text-ivory hover:bg-gold-600 hover:text-maroon-950 transition-colors ${compact ? "px-4 py-2" : "px-5 py-2.5"}`}>
             Write a Review
           </button>
         )}

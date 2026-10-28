@@ -126,7 +126,17 @@ export const listMyOrders = asyncHandler(async (req, res) => {
   const [orders] = await pool.query("SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC", [req.user.id]);
   const [items] = orders.length
     ? await pool.query(
-        `SELECT * FROM order_items WHERE order_id IN (${orders.map(() => "?").join(",")})`,
+        `SELECT oi.*,
+                p.theme,
+                c.art_type AS category_type,
+                (SELECT image_url FROM product_images pi
+                 WHERE pi.product_id = oi.product_id
+                 ORDER BY pi.is_primary DESC, pi.sort_order ASC
+                 LIMIT 1) AS primary_image
+         FROM order_items oi
+         LEFT JOIN products p ON p.id = oi.product_id
+         LEFT JOIN categories c ON c.id = p.category_id
+         WHERE oi.order_id IN (${orders.map(() => "?").join(",")})`,
         orders.map((o) => o.id)
       )
     : [[]];
@@ -143,6 +153,9 @@ export const listMyOrders = asyncHandler(async (req, res) => {
         name: i.product_name,
         price: Number(i.unit_price),
         qty: i.quantity,
+        image: i.primary_image || null,
+        theme: i.theme || "gold",
+        categoryType: i.category_type || "necklace",
       })),
     })),
   });
@@ -152,7 +165,23 @@ export const listMyOrders = asyncHandler(async (req, res) => {
 export const getMyOrder = asyncHandler(async (req, res) => {
   const [orders] = await pool.query("SELECT * FROM orders WHERE id = ? AND user_id = ?", [req.params.id, req.user.id]);
   if (orders.length === 0) return res.status(404).json({ success: false, message: "Order not found" });
-  const [items] = await pool.query("SELECT * FROM order_items WHERE order_id = ?", [req.params.id]);
+  const [items] = await pool.query(
+    `SELECT oi.*,
+            p.theme,
+            c.art_type AS category_type,
+            (SELECT rr.status FROM return_requests rr
+             WHERE rr.order_item_id = oi.id
+             ORDER BY rr.created_at DESC LIMIT 1) AS return_status,
+            (SELECT image_url FROM product_images pi
+             WHERE pi.product_id = oi.product_id
+             ORDER BY pi.is_primary DESC, pi.sort_order ASC
+             LIMIT 1) AS primary_image
+     FROM order_items oi
+     LEFT JOIN products p ON p.id = oi.product_id
+     LEFT JOIN categories c ON c.id = p.category_id
+     WHERE oi.order_id = ?`,
+    [req.params.id]
+  );
   const [address] = await pool.query("SELECT * FROM addresses WHERE id = ?", [orders[0].address_id]);
   res.json({
     success: true,
@@ -166,8 +195,18 @@ export const getMyOrder = asyncHandler(async (req, res) => {
       total: Number(orders[0].total_amount),
       paymentMethod: orders[0].payment_method,
       createdAt: orders[0].created_at,
-      address: address[0],
-      items: items.map((i) => ({ productId: i.product_id, name: i.product_name, price: Number(i.unit_price), qty: i.quantity })),
+      address: address[0] || null,
+      items: items.map((i) => ({
+        orderItemId: i.id,
+        productId: i.product_id,
+        name: i.product_name,
+        price: Number(i.unit_price),
+        qty: i.quantity,
+        image: i.primary_image || null,
+        theme: i.theme || "gold",
+        categoryType: i.category_type || "necklace",
+        returnStatus: i.return_status || null,
+      })),
     },
   });
 });

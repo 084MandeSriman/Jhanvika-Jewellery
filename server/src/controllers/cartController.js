@@ -25,7 +25,13 @@ function cartIdentity(req) {
 export const getCart = asyncHandler(async (req, res) => {
   const cart = await findOrCreateCart(cartIdentity(req));
   const [items] = await pool.query(
-    `SELECT ci.quantity, p.* FROM cart_items ci JOIN products p ON p.id = ci.product_id WHERE ci.cart_id = ?`,
+    `SELECT ci.quantity, p.*, c.art_type,
+       (SELECT image_url FROM product_images pi WHERE pi.product_id = p.id
+          ORDER BY pi.is_primary DESC, pi.sort_order ASC LIMIT 1) as primary_image
+     FROM cart_items ci
+     JOIN products p ON p.id = ci.product_id
+     JOIN categories c ON c.id = p.category_id
+     WHERE ci.cart_id = ?`,
     [cart.id]
   );
   res.json({
@@ -34,10 +40,12 @@ export const getCart = asyncHandler(async (req, res) => {
       product: {
         id: i.id,
         name: i.name,
+        image: i.primary_image || null,
         price: Number(i.price),
         mrp: Number(i.mrp),
         theme: i.theme,
         category: i.category_id,
+        categoryType: i.art_type,
         gemstone: i.gemstone,
         metal: i.metal,
       },

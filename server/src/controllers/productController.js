@@ -14,6 +14,7 @@ function shapeProduct(row, details = []) {
     gemstone: row.gemstone,
     price: Number(row.price),
     mrp: Number(row.mrp),
+    stockQty: Number(row.stock_qty ?? 0),
     rating: Number(row.rating),
     reviews: row.review_count,
     badge: row.badge || undefined,

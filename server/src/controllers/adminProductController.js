@@ -57,12 +57,21 @@ export const adminUpdateProduct = asyncHandler(async (req, res) => {
     "diamond_color", "stone_weight", "hallmark_number", "bis_hallmark", "certificate_number", "making_charges",
     "gst_percent", "size_type", "available_sizes",
   ];
+  const nullableDecimalFields = new Set([
+    "gold_weight", "net_weight", "gross_weight", "diamond_weight", "stone_weight",
+  ]);
+  const decimalDefaults = { making_charges: 0, gst_percent: 3 };
   const updates = [];
   const values = [];
   for (const f of fields) {
     if (req.body[f] !== undefined) {
       updates.push(`${f} = ?`);
-      values.push(req.body[f]);
+      const value = req.body[f];
+      if (typeof value === "string" && value.trim() === "") {
+        values.push(nullableDecimalFields.has(f) ? null : (decimalDefaults[f] ?? value));
+      } else {
+        values.push(value);
+      }
     }
   }
   if (updates.length === 0) return res.status(400).json({ success: false, message: "No fields to update" });

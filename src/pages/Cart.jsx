@@ -26,11 +26,11 @@ export default function Cart() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-6 md:px-10 py-10 md:py-14">
-      <h1 className="font-display text-3xl md:text-4xl text-maroon-900 mb-8">Your Bag ({items.length})</h1>
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-10 py-6 md:py-14">
+      <h1 className="font-display text-2xl md:text-4xl text-maroon-900 mb-6 md:mb-8">Your Bag ({items.length})</h1>
 
-      <div className="grid md:grid-cols-3 gap-10">
-        <div className="md:col-span-2 space-y-4">
+      <div className="grid md:grid-cols-3 gap-6 md:gap-10">
+        <div className="md:col-span-2 space-y-3 md:space-y-4">
           <AnimatePresence>
             {items.map(({ product, qty }) => {
               return (
@@ -40,9 +40,9 @@ export default function Cart() {
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, x: -20 }}
-                  className="flex gap-4 md:gap-6 bg-ivory-deep/60 border border-gold-200/50 rounded-2xl p-4 md:p-5"
+                  className="flex gap-3 sm:gap-4 md:gap-6 bg-ivory-deep/60 border border-gold-200/50 rounded-xl md:rounded-2xl p-3 sm:p-4 md:p-5"
                 >
-                  <Link to={`/product/${product.id}`} className="w-20 h-20 md:w-28 md:h-28 shrink-0 rounded-xl bg-ivory overflow-hidden flex items-center justify-center">
+                  <Link to={`/product/${product.id}`} className="w-[70px] h-[70px] sm:w-20 sm:h-20 md:w-28 md:h-28 shrink-0 rounded-lg md:rounded-xl bg-ivory overflow-hidden flex items-center justify-center">
                     {product.image ? (
                       <img src={resolveImageUrl(product.image)} alt={product.name} className="w-full h-full object-cover" />
                     ) : (
@@ -53,26 +53,26 @@ export default function Cart() {
                   </Link>
                   <div className="flex-1 min-w-0">
                     <Link to={`/product/${product.id}`}>
-                      <h3 className="font-display text-lg md:text-xl text-maroon-900 truncate">{product.name}</h3>
+                      <h3 className="font-display text-base sm:text-lg md:text-xl text-maroon-900 leading-snug line-clamp-2">{product.name}</h3>
                     </Link>
-                    <p className="text-xs text-maroon-900/50 font-body mt-0.5">{product.gemstone} · {product.metal}</p>
-                    <div className="flex items-center justify-between mt-3 flex-wrap gap-3">
+                    <p className="text-[10px] sm:text-xs text-maroon-900/50 font-body mt-0.5 line-clamp-1">{product.gemstone} · {product.metal}</p>
+                    <div className="flex items-center justify-between mt-2 sm:mt-3 flex-wrap gap-2">
                       <div className="flex items-center border border-gold-300 rounded-full">
-                        <button onClick={() => updateQty(product.id, qty - 1)} className="p-2 text-maroon-900 hover:text-gold-600">
+                        <button onClick={() => updateQty(product.id, qty - 1)} className="p-1.5 sm:p-2 text-maroon-900 hover:text-gold-600" aria-label={`Decrease quantity of ${product.name}`}>
                           <Minus size={13} />
                         </button>
-                        <span className="w-7 text-center text-sm font-body text-maroon-900">{qty}</span>
-                        <button onClick={() => updateQty(product.id, qty + 1)} className="p-2 text-maroon-900 hover:text-gold-600">
+                        <span className="w-6 sm:w-7 text-center text-xs sm:text-sm font-body text-maroon-900">{qty}</span>
+                        <button onClick={() => updateQty(product.id, qty + 1)} className="p-1.5 sm:p-2 text-maroon-900 hover:text-gold-600" aria-label={`Increase quantity of ${product.name}`}>
                           <Plus size={13} />
                         </button>
                       </div>
-                      <span className="font-display text-lg text-maroon-900">
+                      <span className="font-display text-base sm:text-lg text-maroon-900">
                         ₹{(product.price * qty).toLocaleString("en-IN")}
                       </span>
                     </div>
                   </div>
-                  <button onClick={() => removeFromCart(product.id)} aria-label="Remove item" className="text-maroon-900/40 hover:text-maroon-700 transition-colors shrink-0">
-                    <Trash2 size={17} />
+                  <button onClick={() => removeFromCart(product.id)} aria-label={`Remove ${product.name} from bag`} className="text-maroon-900/40 hover:text-maroon-700 transition-colors shrink-0 self-center">
+                    <Trash2 size={15} />
                   </button>
                 </motion.div>
               );
@@ -84,9 +84,9 @@ export default function Cart() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="h-fit bg-maroon-900 text-ivory rounded-2xl p-6 md:p-7 sticky top-28"
+          className="h-fit bg-maroon-900 text-ivory rounded-xl md:rounded-2xl p-5 md:p-7 md:sticky md:top-28"
         >
-          <h3 className="font-display text-xl mb-5">Order Summary</h3>
+          <h3 className="font-display text-xl mb-4 md:mb-5">Order Summary</h3>
           <div className="space-y-2.5 text-sm font-body text-ivory/75">
             <div className="flex justify-between">
               <span>Subtotal</span>

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { motion, AnimatePresence } from "framer-motion";
-import { SlidersHorizontal, X, ChevronDown } from "lucide-react";
+import { SlidersHorizontal, X, ChevronDown, ChevronUp, ChevronRight, RotateCcw, Gem, IndianRupee, Filter } from "lucide-react";
 import { themeList, themeLabels } from "../data/themes";
 import { useCategories, useProducts } from "../hooks/useCatalogue";
 import ProductCard from "../components/ProductCard";
@@ -22,13 +22,16 @@ export default function Shop() {
   const urlMaxPrice = Number(searchParams.get("maxPrice"));
 
   const [activeThemes, setActiveThemes] = useState([]);
+  const [draftThemes, setDraftThemes] = useState([]);
   const [sort, setSort] = useState("featured");
   const [maxPrice, setMaxPrice] = useState(Number.isFinite(urlMaxPrice) && urlMaxPrice > 0 ? urlMaxPrice : 35000);
+  const [draftMaxPrice, setDraftMaxPrice] = useState(Number.isFinite(urlMaxPrice) && urlMaxPrice > 0 ? urlMaxPrice : 35000);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
     if (Number.isFinite(urlMaxPrice) && urlMaxPrice > 0) {
       setMaxPrice(urlMaxPrice);
+      setDraftMaxPrice(urlMaxPrice);
     }
   }, [urlMaxPrice]);
 
@@ -44,7 +47,20 @@ export default function Shop() {
   });
 
   const toggleTheme = (theme) => {
-    setActiveThemes((prev) => (prev.includes(theme) ? prev.filter((t) => t !== theme) : [...prev, theme]));
+    setDraftThemes((prev) => (prev.includes(theme) ? prev.filter((t) => t !== theme) : [...prev, theme]));
+  };
+
+  const applyFilters = () => {
+    setActiveThemes(draftThemes);
+    setMaxPrice(draftMaxPrice);
+    setFiltersOpen(false);
+  };
+
+  const clearFilters = () => {
+    setDraftThemes([]);
+    setActiveThemes([]);
+    setDraftMaxPrice(35000);
+    setMaxPrice(35000);
   };
 
   return (
@@ -62,12 +78,14 @@ export default function Shop() {
 
       <div className="flex flex-col md:flex-row gap-8">
         {/* Filters sidebar - desktop */}
-        <aside className="hidden md:block w-64 shrink-0">
+        <aside className="hidden md:block w-64 lg:w-72 shrink-0 self-start sticky top-[calc(var(--storefront-header-height,7rem)+1rem)] max-h-[calc(100vh-var(--storefront-header-height,7rem)-2rem)] overflow-y-auto">
           <FilterPanel
-            activeThemes={activeThemes}
+            draftThemes={draftThemes}
             toggleTheme={toggleTheme}
-            maxPrice={maxPrice}
-            setMaxPrice={setMaxPrice}
+            draftMaxPrice={draftMaxPrice}
+            setMaxPrice={setDraftMaxPrice}
+            onApply={applyFilters}
+            onClear={clearFilters}
           />
         </aside>
 
@@ -162,16 +180,19 @@ export default function Shop() {
                 </button>
               </div>
               <FilterPanel
-                activeThemes={activeThemes}
+                draftThemes={draftThemes}
                 toggleTheme={toggleTheme}
-                maxPrice={maxPrice}
-                setMaxPrice={setMaxPrice}
+                draftMaxPrice={draftMaxPrice}
+                setMaxPrice={setDraftMaxPrice}
+                onApply={applyFilters}
+                onClear={clearFilters}
+                showApply={false}
               />
               <button
-                onClick={() => setFiltersOpen(false)}
-                className="w-full mt-4 py-3 rounded-full bg-maroon-900 text-ivory font-body text-sm"
+                onClick={applyFilters}
+                className="w-full mt-5 py-3 rounded-full bg-maroon-900 text-ivory font-body text-sm"
               >
-                Show {filtered.length} results
+                Apply Filters <ChevronRight size={16} className="inline ml-1" />
               </button>
             </motion.div>
           </>
@@ -181,45 +202,83 @@ export default function Shop() {
   );
 }
 
-function FilterPanel({ activeThemes, toggleTheme, maxPrice, setMaxPrice }) {
+function FilterPanel({ draftThemes, toggleTheme, draftMaxPrice, setMaxPrice, onApply, onClear, showApply = true }) {
+  const [stoneOpen, setStoneOpen] = useState(true);
+  const [priceOpen, setPriceOpen] = useState(true);
+
   return (
-    <div className="space-y-8">
-      <div>
-        <h4 className="font-body text-sm font-medium text-maroon-900 mb-3 tracking-wide uppercase">Stone / Finish</h4>
-        <div className="flex flex-wrap gap-2">
-          {themeList.map((t) => (
-            <button
-              key={t}
-              onClick={() => toggleTheme(t)}
-              className={`text-xs font-body px-3 py-1.5 rounded-full border transition-colors ${
-                activeThemes.includes(t)
-                  ? "bg-maroon-900 text-ivory border-maroon-900"
-                  : "border-gold-300 text-maroon-900 hover:bg-gold-100"
-              }`}
-            >
-              {themeLabels[t]}
-            </button>
-          ))}
-        </div>
+    <div className="overflow-hidden rounded-2xl border border-gold-300/80 bg-ivory/80">
+      <div className="flex items-center justify-between border-b border-gold-200/70 px-5 py-4">
+        <h3 className="flex items-center gap-3 font-display text-xl text-maroon-900">
+          <Filter size={18} fill="currentColor" /> Filters
+        </h3>
+        <button onClick={onClear} className="flex items-center gap-1.5 text-xs font-body text-maroon-900/60 hover:text-gold-700">
+          Clear All <RotateCcw size={14} />
+        </button>
       </div>
 
-      <div>
-        <h4 className="font-body text-sm font-medium text-maroon-900 mb-3 tracking-wide uppercase">
-          Max Price: ₹{maxPrice.toLocaleString("en-IN")}
-        </h4>
-        <input
-          type="range"
-          min="500"
-          max="35000"
-          step="500"
-          value={maxPrice}
-          onChange={(e) => setMaxPrice(Number(e.target.value))}
-          className="w-full accent-gold-600"
-        />
-        <div className="flex justify-between text-[11px] text-maroon-900/50 font-body mt-1">
-          <span>₹500</span>
-          <span>₹35,000+</span>
-        </div>
+      <div className="px-5">
+        <section className="border-b border-gold-200/70 py-5">
+          <button onClick={() => setStoneOpen((open) => !open)} className="flex w-full items-center justify-between text-left">
+            <span className="flex items-center gap-3 font-body text-sm font-medium text-maroon-900">
+              <Gem size={17} /> Stone / Finish
+            </span>
+            {stoneOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+          </button>
+          {stoneOpen && (
+            <div className="mt-5 flex flex-wrap gap-2">
+              {themeList.map((t) => (
+                <button
+                  key={t}
+                  onClick={() => toggleTheme(t)}
+                  className={`rounded-full border px-4 py-2 text-xs font-body transition-colors ${
+                    draftThemes.includes(t)
+                      ? "border-maroon-900 bg-maroon-900 text-ivory"
+                      : "border-gold-300 text-maroon-900 hover:bg-gold-100"
+                  }`}
+                >
+                  {themeLabels[t]}
+                </button>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="py-5">
+          <button onClick={() => setPriceOpen((open) => !open)} className="flex w-full items-center justify-between text-left">
+            <span className="flex items-center gap-3 font-body text-sm font-medium text-maroon-900">
+              <IndianRupee size={17} /> Price Range
+            </span>
+            {priceOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+          </button>
+          {priceOpen && (
+            <div className="mt-5">
+              <div className="mb-2 flex justify-between text-xs font-body text-maroon-900">
+                <span>₹500</span>
+                <span>₹{draftMaxPrice.toLocaleString("en-IN")}{draftMaxPrice >= 35000 ? "+" : ""}</span>
+              </div>
+              <input
+                type="range"
+                min="500"
+                max="35000"
+                step="500"
+                value={draftMaxPrice}
+                onChange={(e) => setMaxPrice(Number(e.target.value))}
+                aria-label="Maximum price"
+                className="w-full accent-gold-600"
+              />
+            </div>
+          )}
+        </section>
+
+        {showApply && (
+          <button
+            onClick={onApply}
+            className="mb-5 flex w-full items-center justify-center gap-2 rounded-full bg-maroon-900 py-3 text-sm font-body text-ivory transition-colors hover:bg-gold-600 hover:text-maroon-950"
+          >
+            Apply Filters <ChevronRight size={16} />
+          </button>
+        )}
       </div>
     </div>
   );

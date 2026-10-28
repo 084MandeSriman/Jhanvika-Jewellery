@@ -26,6 +26,8 @@ export default function ProductDetail() {
   const { isAuthenticated } = useAuth();
   const [qty, setQty] = useState(1);
   const [activeTab, setActiveTab] = useState("details");
+  const [recentlyViewed, setRecentlyViewed] = useState([]);
+  const viewedProductId = product?.id;
 
   useEffect(() => {
     setQty(1);
@@ -33,10 +35,26 @@ export default function ProductDetail() {
   }, [productId]);
 
   useEffect(() => {
-    if (isAuthenticated && product) {
-      RecentlyViewedAPI.track(product.id).catch(() => {});
+    let cancelled = false;
+    setRecentlyViewed([]);
+
+    if (isAuthenticated && viewedProductId) {
+      RecentlyViewedAPI.track(viewedProductId)
+        .then(() => RecentlyViewedAPI.list())
+        .then((res) => {
+          if (!cancelled) {
+            setRecentlyViewed(res.data.filter((item) => item.id !== viewedProductId));
+          }
+        })
+        .catch((error) => {
+          console.error("Failed to load recently viewed products", error);
+        });
     }
-  }, [isAuthenticated, product?.id]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated, viewedProductId]);
 
   if (loading) {
     return <div className="max-w-7xl mx-auto px-6 md:px-10 py-24" />;
@@ -56,9 +74,10 @@ export default function ProductDetail() {
   const category = categories.find((c) => c.id === product.category);
   const discount = Math.round(((product.mrp - product.price) / product.mrp) * 100);
   const wishlisted = isWishlisted(product.id);
+  const isOutOfStock = product.stockQty <= 0;
 
   return (
-    <div className="max-w-7xl mx-auto px-6 md:px-10 py-8 md:py-12">
+    <div className="max-w-[1400px] mx-auto px-5 md:px-10 py-5 md:py-7">
       <Helmet>
         <title>{product.name} — Jhanvika Jewelleries</title>
         <meta name="description" content={product.description?.slice(0, 155)} />
@@ -76,7 +95,7 @@ export default function ProductDetail() {
               "@type": "Offer",
               price: product.price,
               priceCurrency: "INR",
-              availability: "https://schema.org/InStock",
+              availability: `https://schema.org/${isOutOfStock ? "OutOfStock" : "InStock"}`,
             },
             aggregateRating: {
               "@type": "AggregateRating",
@@ -87,7 +106,7 @@ export default function ProductDetail() {
         </script>
       </Helmet>
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-xs text-maroon-900/50 font-body mb-8 flex-wrap">
+      <div className="flex items-center gap-2 text-xs text-maroon-900/50 font-body mb-5 flex-wrap">
         <Link to="/" className="hover:text-gold-600">Home</Link>
         <ChevronRight size={12} />
         <Link to={`/shop/${product.category}`} className="hover:text-gold-600">{category?.name}</Link>
@@ -95,10 +114,10 @@ export default function ProductDetail() {
         <span className="text-maroon-900">{product.name}</span>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-10 md:gap-16">
-        {/* Image / art side */}
-        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }}>
-          <div className="relative rounded-3xl bg-gradient-to-b from-ivory-deep to-ivory border border-gold-200/50 p-10 md:p-14 flex items-center justify-center overflow-hidden aspect-square">
+      <div className="grid md:grid-cols-2 gap-8 md:gap-10 lg:gap-14">
+        <div>
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }}>
+          <div className="relative rounded-xl bg-gradient-to-b from-ivory-deep to-ivory border border-gold-200/50 flex items-center justify-center overflow-hidden aspect-[1.28]">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(233,195,99,0.22),transparent_65%)]" />
             {product.badge && (
               <span
@@ -113,10 +132,10 @@ export default function ProductDetail() {
               <img
                 src={resolveImageUrl(images[activeImageIndex]?.image_url || images[0].image_url)}
                 alt={images[activeImageIndex]?.alt_text || product.name}
-                className="w-full h-full object-cover relative z-10 rounded-2xl"
+                className="w-full h-full object-cover relative z-10"
               />
             ) : (
-              <JewelArt type={product.categoryType} theme={product.theme} className="w-full max-w-sm animate-float drop-shadow-2xl relative z-10" />
+              <JewelArt type={product.categoryType} theme={product.theme} className="w-full h-full max-w-lg p-6 animate-float drop-shadow-2xl relative z-10" />
             )}
           </div>
 
@@ -135,12 +154,14 @@ export default function ProductDetail() {
               ))}
             </div>
           )}
-        </motion.div>
+          </motion.div>
+          <ProductReviews productId={product.id} compact />
+        </div>
 
         {/* Info side */}
         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, delay: 0.1 }}>
-          <p className="text-xs uppercase tracking-[0.3em] text-gold-600 font-body mb-3">{product.gemstone} · {product.metal}</p>
-          <h1 className="font-display text-3xl md:text-4xl text-maroon-900 leading-tight">{product.name}</h1>
+          <p className="text-[11px] uppercase tracking-[0.3em] text-gold-600 font-body mb-2">{product.gemstone} · {product.metal}</p>
+          <h1 className="font-display text-3xl md:text-[2rem] text-maroon-900 leading-tight">{product.name}</h1>
 
           <div className="flex items-center gap-2 mt-3">
             <div className="flex items-center gap-0.5">
@@ -153,30 +174,39 @@ export default function ProductDetail() {
             </span>
           </div>
 
-          <div className="flex items-baseline gap-3 mt-6">
-            <span className="font-display text-4xl text-maroon-900">₹{product.price.toLocaleString("en-IN")}</span>
-            <span className="text-base text-maroon-900/40 line-through font-body">₹{product.mrp.toLocaleString("en-IN")}</span>
+          <div className="flex items-baseline gap-3 mt-4">
+            <span className="font-display text-3xl text-maroon-900">₹{product.price.toLocaleString("en-IN")}</span>
+            <span className="text-sm text-maroon-900/40 line-through font-body">₹{product.mrp.toLocaleString("en-IN")}</span>
             <span className="text-sm text-emerald-800 font-body font-medium">{discount}% off</span>
           </div>
           <p className="text-xs text-maroon-900/50 font-body mt-1">Inclusive of all taxes</p>
+          <p className={`text-sm font-body mt-1 ${isOutOfStock ? "text-red-700" : "text-emerald-800"}`}>
+            {isOutOfStock ? "Out of stock" : `${product.stockQty} in stock`}
+          </p>
 
-          <p className="text-maroon-900/70 font-body mt-6 leading-relaxed text-[15px]">{product.description}</p>
+          <p className="text-maroon-900/70 font-body mt-2 leading-relaxed text-sm">{product.description}</p>
 
           {/* Quantity + actions */}
-          <div className="flex items-center gap-4 mt-8">
+          <div className="flex items-center gap-3 mt-5">
             <div className="flex items-center border border-gold-300 rounded-full">
               <button onClick={() => setQty((q) => Math.max(1, q - 1))} className="p-3 text-maroon-900 hover:text-gold-600" aria-label="Decrease quantity">
                 <Minus size={14} />
               </button>
               <span className="w-8 text-center font-body text-maroon-900">{qty}</span>
-              <button onClick={() => setQty((q) => q + 1)} className="p-3 text-maroon-900 hover:text-gold-600" aria-label="Increase quantity">
+              <button
+                onClick={() => setQty((q) => Math.min(product.stockQty, q + 1))}
+                disabled={isOutOfStock || qty >= product.stockQty}
+                className="p-3 text-maroon-900 hover:text-gold-600 disabled:opacity-40 disabled:cursor-not-allowed"
+                aria-label="Increase quantity"
+              >
                 <Plus size={14} />
               </button>
             </div>
 
             <button
               onClick={() => addToCart(product, qty)}
-              className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-full bg-maroon-900 text-ivory font-body text-sm tracking-wide hover:bg-gold-600 hover:text-maroon-950 transition-colors"
+              disabled={isOutOfStock}
+              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-full bg-maroon-900 text-ivory font-body text-sm tracking-wide hover:bg-gold-600 hover:text-maroon-950 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ShoppingBag size={17} />
               Add to Bag
@@ -193,13 +223,14 @@ export default function ProductDetail() {
 
           <button
             onClick={() => navigate("/cart")}
-            className="w-full mt-3 py-3.5 rounded-full border border-maroon-900 text-maroon-900 font-body text-sm tracking-wide hover:bg-maroon-900 hover:text-ivory transition-colors"
+            disabled={isOutOfStock}
+            className="w-full mt-2 py-2.5 rounded-full border border-maroon-900 text-maroon-900 font-body text-sm tracking-wide hover:bg-maroon-900 hover:text-ivory transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Buy It Now
           </button>
 
           {/* Trust badges */}
-          <div className="grid grid-cols-3 gap-3 mt-8 pt-6 border-t border-gold-200/60">
+          <div className="grid grid-cols-3 gap-3 mt-5 pt-4 border-t border-gold-200/60">
             {[
               { icon: Truck, label: "Free Shipping" },
               { icon: RefreshCcw, label: "15-Day Exchange" },
@@ -213,7 +244,7 @@ export default function ProductDetail() {
           </div>
 
           {/* Tabs */}
-          <div className="mt-10">
+          <div className="mt-5">
             <div className="flex gap-6 border-b border-gold-200/60">
               {["details", "shipping"].map((tab) => (
                 <button
@@ -262,18 +293,27 @@ export default function ProductDetail() {
             </AnimatePresence>
           </div>
 
-          <JewellerySpecs specs={product.specs} />
+          {activeTab === "details" && <JewellerySpecs specs={product.specs} />}
         </motion.div>
       </div>
-
-      <ProductReviews productId={product.id} />
 
       {/* Related products */}
       {related.length > 0 && (
         <div className="mt-24">
-          <SectionHeading eyebrow="You May Also Love" title="Complete the Look" align="left" />
+          <SectionHeading eyebrow="You May Also Love" title="Complete the Look" />
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-7">
             {related.map((p, i) => (
+              <ProductCard key={p.id} product={p} index={i} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {isAuthenticated && recentlyViewed.length > 0 && (
+        <div className="mt-24">
+          <SectionHeading eyebrow="Your History" title="Recently Viewed" />
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 md:gap-7">
+            {recentlyViewed.slice(0, 4).map((p, i) => (
               <ProductCard key={p.id} product={p} index={i} />
             ))}
           </div>

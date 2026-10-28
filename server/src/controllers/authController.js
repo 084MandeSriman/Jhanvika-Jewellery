@@ -29,7 +29,7 @@ export const register = asyncHandler(async (req, res) => {
     [name, email, phone || null, passwordHash]
   );
 
-  const user = { id: result.insertId, name, email };
+  const user = { id: result.insertId, name, email, phone: phone || null };
   const token = signToken(user);
   sendEmail({ to: email, subject: "Welcome to Jhanvika Jewelleries", html: welcomeEmail(name) }).catch(() => {});
   res.status(201).json({ success: true, data: { user, token } });
@@ -56,7 +56,7 @@ export const login = asyncHandler(async (req, res) => {
   ]);
 
   const token = signToken(user);
-  res.json({ success: true, data: { user: { id: user.id, name: user.name, email: user.email }, token } });
+  res.json({ success: true, data: { user: { id: user.id, name: user.name, email: user.email, phone: user.phone }, token } });
 });
 
 // GET /api/auth/me

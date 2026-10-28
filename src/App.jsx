@@ -23,6 +23,7 @@ import Contact from "./pages/Contact";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Account from "./pages/Account";
+import OrderDetails from "./pages/OrderDetails";
 import Checkout from "./pages/Checkout";
 import NotFound from "./pages/NotFound";
 
@@ -54,6 +55,16 @@ function StorefrontRoutes() {
         <Route path="/contact" element={<PageWrapper><Contact /></PageWrapper>} />
         <Route path="/login" element={<PageWrapper><Login /></PageWrapper>} />
         <Route path="/register" element={<PageWrapper><Register /></PageWrapper>} />
+        <Route
+          path="/account/orders/:orderId"
+          element={
+            <PageWrapper>
+              <ProtectedRoute>
+                <OrderDetails />
+              </ProtectedRoute>
+            </PageWrapper>
+          }
+        />
         <Route
           path="/account"
           element={

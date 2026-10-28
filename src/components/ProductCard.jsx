@@ -9,6 +9,7 @@ export default function ProductCard({ product, index = 0 }) {
   const { addToCart, toggleWishlist, isWishlisted } = useCart();
   const discount = Math.round(((product.mrp - product.price) / product.mrp) * 100);
   const wishlisted = isWishlisted(product.id);
+  const isOutOfStock = product.stockQty <= 0;
 
   return (
     <motion.div
@@ -19,7 +20,11 @@ export default function ProductCard({ product, index = 0 }) {
       className="group relative"
     >
       <div className="relative rounded-2xl bg-gradient-to-b from-ivory-deep to-ivory overflow-hidden border border-gold-200/50 card-shine shadow-sm hover:shadow-gold transition-shadow duration-500">
-        {product.badge && (
+        {isOutOfStock ? (
+          <span className="absolute top-3 left-3 z-10 text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-full font-body bg-red-800 text-white">
+            Out of stock
+          </span>
+        ) : product.badge && (
           <span
             className={`absolute top-3 left-3 z-10 text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-full font-body ${
               product.badge === "Sale"
@@ -85,10 +90,11 @@ export default function ProductCard({ product, index = 0 }) {
 
           <button
             onClick={() => addToCart(product)}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-full bg-maroon-900 text-ivory text-sm tracking-wide hover:bg-gold-600 hover:text-maroon-950 transition-colors duration-300 font-body"
+            disabled={isOutOfStock}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-full bg-maroon-900 text-ivory text-sm tracking-wide hover:bg-gold-600 hover:text-maroon-950 transition-colors duration-300 font-body disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <ShoppingBag size={15} />
-            Add to Bag
+            {isOutOfStock ? "Out of Stock" : "Add to Bag"}
           </button>
         </div>
       </div>

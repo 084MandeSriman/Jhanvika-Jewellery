@@ -21,28 +21,36 @@ const CARAT_FIELDS = new Set(["diamondWeight"]);
 export default function JewellerySpecs({ specs }) {
   if (!specs) return null;
 
-  const rows = Object.entries(LABELS)
-    .map(([key, label]) => {
-      let value = specs[key];
-      if (value === null || value === undefined || value === "") return null;
-      if (WEIGHT_FIELDS.has(key)) value = `${value} g`;
-      if (CARAT_FIELDS.has(key)) value = `${value} ct`;
-      return { key, label, value };
-    })
-    .filter(Boolean);
+  const formatValue = (key, value) => {
+    if (value === null || value === undefined || value === "") return null;
+    if (WEIGHT_FIELDS.has(key)) return `${value} g`;
+    if (CARAT_FIELDS.has(key)) return `${value} ct`;
+    return value;
+  };
+  const columns = [
+    ["sku", "goldPurity", "netWeight", "diamondWeight", "diamondColor", "hallmarkNumber"],
+    ["hsnCode", "goldWeight", "grossWeight", "diamondClarity", "stoneWeight", "certificateNumber"],
+  ].map((keys) => keys
+    .map((key) => ({ key, label: LABELS[key], value: formatValue(key, specs[key]) }))
+    .filter((row) => row.value !== null));
+  const rows = columns.flat();
 
   if (rows.length === 0 && !specs.bisHallmark) return null;
 
   return (
-    <div className="mt-10 pt-6 border-t border-gold-200/60">
-      <h4 className="font-body text-sm font-medium text-maroon-900 uppercase tracking-wide mb-4 flex items-center gap-2">
+    <div className="mt-3 rounded-xl border border-gold-200/70 p-4 md:p-5">
+      <h4 className="font-body text-xs font-medium text-maroon-900 uppercase tracking-wide mb-3 flex items-center gap-2">
         <Award size={16} className="text-gold-600" /> Specifications
       </h4>
-      <div className="grid grid-cols-2 gap-x-6 gap-y-3">
-        {rows.map((r) => (
-          <div key={r.key} className="text-sm font-body">
-            <span className="text-maroon-900/50">{r.label}: </span>
-            <span className="text-maroon-900 font-medium">{r.value}</span>
+      <div className="grid grid-cols-2">
+        {columns.map((column, columnIndex) => (
+          <div key={columnIndex} className={`space-y-1.5 ${columnIndex === 1 ? "border-l border-gold-200/70 pl-4 md:pl-8" : "pr-3 md:pr-6"}`}>
+            {column.map((r) => (
+              <div key={r.key} className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 text-[11px] md:text-xs font-body">
+                <span className="text-maroon-900/50">{r.label}:</span>
+                <span className="text-maroon-900 font-medium text-right">{r.value}</span>
+              </div>
+            ))}
           </div>
         ))}
       </div>

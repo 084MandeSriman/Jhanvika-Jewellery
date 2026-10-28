@@ -5,6 +5,7 @@ import { useCategories } from "../hooks/useCatalogue";
 import JewelArt from "./JewelArt";
 import SectionHeading from "./SectionHeading";
 import { resolveImageUrl } from "../utils/imageUrl";
+import { scrollToTopImmediately } from "../utils/scroll";
 
 const themeForCategory = {
   necklaces: "kundan",
@@ -101,6 +102,7 @@ function CategoryCard({ c, i, resolveImageUrl }) {
     >
       <Link
         to={`/shop/${c.id}`}
+        onClick={scrollToTopImmediately}
         className="group relative flex flex-col overflow-hidden rounded-[28px] bg-ivory h-[400px] md:h-[440px] hover:-translate-y-1 transition-transform duration-500"
       >
         {/* Image — fades into the card's background rather than a hard edge */}

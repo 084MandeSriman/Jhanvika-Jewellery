@@ -24,6 +24,25 @@ export const createAddress = asyncHandler(async (req, res) => {
   res.status(201).json({ success: true, data: { id: result.insertId } });
 });
 
+// PATCH /api/addresses/:id
+export const updateAddress = asyncHandler(async (req, res) => {
+  const { fullName, phone, line1, line2, city, state, pincode } = req.body;
+  if (!fullName || !phone || !line1 || !city || !state || !pincode) {
+    return res.status(400).json({ success: false, message: "Missing required address fields" });
+  }
+  const [addresses] = await pool.query("SELECT id FROM addresses WHERE id = ? AND user_id = ?", [req.params.id, req.user.id]);
+  if (addresses.length === 0) {
+    return res.status(404).json({ success: false, message: "Address not found" });
+  }
+  await pool.query(
+    `UPDATE addresses
+     SET full_name = ?, phone = ?, line1 = ?, line2 = ?, city = ?, state = ?, pincode = ?
+     WHERE id = ? AND user_id = ?`,
+    [fullName, phone, line1, line2 || null, city, state, pincode, req.params.id, req.user.id]
+  );
+  res.json({ success: true });
+});
+
 // DELETE /api/addresses/:id
 export const deleteAddress = asyncHandler(async (req, res) => {
   await pool.query("DELETE FROM addresses WHERE id = ? AND user_id = ?", [req.params.id, req.user.id]);

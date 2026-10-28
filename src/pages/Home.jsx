@@ -3,7 +3,6 @@ import { Helmet } from "react-helmet-async";
 import { motion } from "framer-motion";
 import { ArrowRight, Hammer, Sparkles, Award } from "lucide-react";
 import Hero from "../components/Hero";
-import USPBar from "../components/USPBar";
 import CategoryShowcase from "../components/CategoryShowcase";
 import ProductCard from "../components/ProductCard";
 import Testimonials from "../components/Testimonials";
@@ -27,7 +26,6 @@ export default function Home() {
         <meta property="og:type" content="website" />
       </Helmet>
       <Hero />
-      <USPBar />
 
       <CategoryShowcase />
 
