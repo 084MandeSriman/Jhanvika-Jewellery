@@ -62,8 +62,11 @@ npm run dev            # → http://localhost:5000
 ```bash
 cp .env.example .env
 npm install
-npm run dev             # → http://localhost:5173
+npm run dev             # → http://localhost:5173 (or 5174 if 5173 is occupied)
 ```
+
+The backend allows both local Vite ports, so its CORS configuration also works when Vite
+automatically switches to port `5174`.
 
 ### 3. Admin panel
 `http://localhost:5173/admin/login` → `admin@jhanvika.in` / `Admin@123`
